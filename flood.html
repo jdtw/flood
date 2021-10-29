@@ -4,11 +4,11 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>🚦 Is {{.Road}} Open!?</title>
+	<title>🌊 Is {{.Road}} Open!?</title>
 </head>
 
 <body>
-	<h1>{{if .Open}}🚙💨 {{.Road}} is Open!{{else}}🚧🌊 {{.Road}} is Closed!{{end}}</h1>
+	<h1>{{if .Open}}🚙 {{.Road}} is Open!{{else}}🚧 {{.Road}} is Closed!{{end}}</h1>
 	{{if .Detail}}
 	<p><a href="{{.Link}}">{{.Detail}}</a>{{if .Published}}</br>Updated at {{.Published}}{{end}}</p>
 	{{end}}
