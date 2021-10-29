@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>🚦 Is {{.Road}} Open?</title>
+</head>
+
+<body>
+	<h1>{{if .Open}}🚙 {{.Road}} is Open! 🚙{{else}}🚧 {{.Road}} is Closed! 🚧{{end}}</h1>
+	{{if .Detail}}
+	<p><a href="{{.Link}}">{{.Detail}}</a></br>Updated at {{.Published}}</p>
+	{{end}}
+	<h2>124th Cameras</h2>
+	<img
+		src="https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=CarDuv_SR203_124.jpg"
+		alt="203 & 124th Roundabout">
+	<img
+		src="https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=WSnoNE_124.jpg"
+		alt="West Snoqualmie & 124th">
+	<h2>Woodinville Duvall Cameras</h2>
+	<img
+		src="https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=WSno_WoodDuv_swc.jpg"
+		alt="West Snoqualmie and Woodinville Duvall, SW corner">
+	<img
+		src="https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=Wsno_WoodDuv_nec.jpg"
+		alt="West Snoqualmie and Woodinville Duvall, NE corner">
+	<hr>
+	<footer>
+		<p>
+			📊 Data is from <a href="https://gismaps.kingcounty.gov/MyCommute/">King County</a>.
+			</br>
+			📧 a.commuter@is124thopen.com
+		</p>
+	</footer>
+</body>
+
+</html>
