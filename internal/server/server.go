@@ -50,6 +50,11 @@ func (s *Server) handler() http.HandlerFunc {
 		if err := s.templ.Execute(w, d); err != nil {
 			internalError(w, "internal error: %v", err)
 		}
+		remote := strings.Join(r.Header["X-Forwarded-For"], ", ")
+		if remote == "" {
+			remote = r.RemoteAddr
+		}
+		log.Printf("%s %s", remote, r.UserAgent())
 	}
 }
 
