@@ -10,7 +10,7 @@
 <body>
 	<h1>{{if .Open}}🚙💨 {{.Road}} is Open!{{else}}🚧🌊 {{.Road}} is Closed!{{end}}</h1>
 	{{if .Detail}}
-	<p><a href="{{.Link}}">{{.Detail}}</a></br>Updated at {{.Published}}</p>
+	<p><a href="{{.Link}}">{{.Detail}}</a>{{if .Published}}</br>Updated at {{.Published}}{{end}}</p>
 	{{end}}
 	<h2>📷 124th Cameras</h2>
 	<img
