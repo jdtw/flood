@@ -35,7 +35,7 @@ func NewServer(feedURL string, road string, tz string, templatePath string) (*Se
 	}
 
 	s := &Server{feedURL, road, loc, t, gofeed.NewParser(), http.NewServeMux()}
-	s.HandleFunc("/", s.handler())
+	s.HandleFunc("/", logged(s.handler()))
 	return s, nil
 }
 
@@ -50,11 +50,6 @@ func (s *Server) handler() http.HandlerFunc {
 		if err := s.templ.Execute(w, d); err != nil {
 			internalError(w, "internal error: %v", err)
 		}
-		remote := strings.Join(r.Header["X-Forwarded-For"], ", ")
-		if remote == "" {
-			remote = r.RemoteAddr
-		}
-		log.Printf("%s %s %s %s", remote, r.Method, r.URL.Path, r.UserAgent())
 	}
 }
 
@@ -96,4 +91,15 @@ func internalError(w http.ResponseWriter, format string, v ...interface{}) {
 	error := fmt.Sprintf(format, v...)
 	log.Print(error)
 	http.Error(w, error, http.StatusInternalServerError)
+}
+
+func logged(hf http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		remote := strings.Join(r.Header["X-Forwarded-For"], "; ")
+		if remote == "" {
+			remote = r.RemoteAddr
+		}
+		log.Printf("%s %s %s %s", remote, r.Method, r.URL.Path, r.UserAgent())
+		hf(w, r)
+	}
 }
