@@ -13,9 +13,7 @@ import (
 )
 
 func main() {
-	var (
-		port = flag.Int("port", 8080, "Port to listen on")
-	)
+	var port = flag.Int("port", 8080, "Port to listen on")
 	flag.Parse()
 
 	handler, err := server.NewHandler(&server.Options{

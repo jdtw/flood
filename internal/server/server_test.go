@@ -114,9 +114,8 @@ func TestOpen(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			feed := startTestServer(t, newFeedGenerator(t, tc.items))
 			h, err := NewHandler(&Options{
-				FeedURL:  feed,
-				Road:     "124th",
-				Timezone: "America/Los_Angeles",
+				FeedURL: feed,
+				Road:    "124th",
 			})
 			if err != nil {
 				t.Fatalf("NewHandler failed: %v", err)
