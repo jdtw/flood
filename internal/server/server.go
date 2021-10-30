@@ -4,8 +4,10 @@ package server
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"strings"
@@ -13,6 +15,9 @@ import (
 
 	"github.com/mmcdole/gofeed"
 )
+
+//go:embed data
+var data embed.FS
 
 type handler struct {
 	feedURL string
@@ -24,11 +29,12 @@ type handler struct {
 }
 
 type Options struct {
-	FeedURL      string
-	Road         string
-	Timezone     string
-	TemplatePath string
-	FaviconPath  string
+	// The RSS feed URL for road alerts.
+	FeedURL string
+	// The road to search for in the alerts.
+	Road string
+	// The timezone for which to display times to the end user.
+	Timezone string
 }
 
 func NewHandler(opts *Options) (http.Handler, error) {
@@ -37,26 +43,20 @@ func NewHandler(opts *Options) (http.Handler, error) {
 		return nil, err
 	}
 
-	t, err := template.ParseFiles(opts.TemplatePath)
+	t, err := template.ParseFS(data, "data/flood.tmpl.html")
+	if err != nil {
+		return nil, err
+	}
+
+	fs, err := fs.Sub(data, "data")
 	if err != nil {
 		return nil, err
 	}
 
 	s := &handler{opts.FeedURL, opts.Road, loc, t, gofeed.NewParser(), http.NewServeMux()}
-	s.HandleFunc("/favicon.ico", favicon(opts.FaviconPath))
+	s.Handle("/favicon.ico", http.FileServer(http.FS(fs)))
 	s.HandleFunc("/", logged(s.flood()))
 	return s, nil
-}
-
-func favicon(faviconPath string) http.HandlerFunc {
-	if faviconPath == "" {
-		return func(w http.ResponseWriter, r *http.Request) {
-			http.NotFound(w, r)
-		}
-	}
-	return func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, faviconPath)
-	}
 }
 
 func (h *handler) flood() http.HandlerFunc {

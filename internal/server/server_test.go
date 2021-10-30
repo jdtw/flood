@@ -114,10 +114,9 @@ func TestOpen(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			feed := startTestServer(t, newFeedGenerator(t, tc.items))
 			h, err := NewHandler(&Options{
-				FeedURL:      feed,
-				Road:         "124th",
-				Timezone:     "America/Los_Angeles",
-				TemplatePath: "flood.html",
+				FeedURL:  feed,
+				Road:     "124th",
+				Timezone: "America/Los_Angeles",
 			})
 			if err != nil {
 				t.Fatalf("NewHandler failed: %v", err)
@@ -151,10 +150,7 @@ func TestOpen(t *testing.T) {
 }
 
 func TestFavicon(t *testing.T) {
-	h, err := NewHandler(&Options{
-		TemplatePath: "flood.html",
-		FaviconPath:  "favicon.ico",
-	})
+	h, err := NewHandler(&Options{})
 	if err != nil {
 		t.Fatalf("NewHandler failed: %v", err)
 	}

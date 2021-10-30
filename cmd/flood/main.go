@@ -14,18 +14,14 @@ import (
 
 func main() {
 	var (
-		port         = flag.Int("port", 8080, "Port to listen on")
-		templatePath = flag.String("template_path", "flood.html", "The HTML template path")
-		faviconPath  = flag.String("favicon_path", "favicon.ico", "The favicon path")
+		port = flag.Int("port", 8080, "Port to listen on")
 	)
 	flag.Parse()
 
 	handler, err := server.NewHandler(&server.Options{
-		FeedURL:      "https://gismaps.kingcounty.gov/roadalert/rss.aspx",
-		Road:         "124th",
-		Timezone:     "America/Los_Angeles",
-		TemplatePath: *templatePath,
-		FaviconPath:  *faviconPath,
+		FeedURL:  "https://gismaps.kingcounty.gov/roadalert/rss.aspx",
+		Road:     "124th",
+		Timezone: "America/Los_Angeles",
 	})
 	if err != nil {
 		log.Fatal(err)
