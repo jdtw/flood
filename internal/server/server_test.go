@@ -113,9 +113,14 @@ func TestOpen(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
 			feed := startTestServer(t, newFeedGenerator(t, tc.items))
-			h, err := NewServer(feed, "124th", "America/Los_Angeles", "flood.html")
+			h, err := NewHandler(&Options{
+				FeedURL:      feed,
+				Road:         "124th",
+				Timezone:     "America/Los_Angeles",
+				TemplatePath: "flood.html",
+			})
 			if err != nil {
-				t.Fatalf("NewServer failed: %v", err)
+				t.Fatalf("NewHandler failed: %v", err)
 			}
 			server := startTestServer(t, h)
 			resp, err := http.Get(server)
@@ -142,5 +147,24 @@ func TestOpen(t *testing.T) {
 				t.Errorf("Body missing detail %q: %s", tc.detail, body)
 			}
 		})
+	}
+}
+
+func TestFavicon(t *testing.T) {
+	h, err := NewHandler(&Options{
+		TemplatePath: "flood.html",
+		FaviconPath:  "favicon.ico",
+	})
+	if err != nil {
+		t.Fatalf("NewHandler failed: %v", err)
+	}
+	server := startTestServer(t, h)
+	resp, err := http.Get(server + "/favicon.ico")
+	if err != nil {
+		t.Fatalf("http.Get(favicon.ico) failed: %v", err)
+	}
+	defer resp.Body.Close()
+	if sc := resp.StatusCode; sc != http.StatusOK {
+		t.Fatalf("Expected OK, got %d", sc)
 	}
 }

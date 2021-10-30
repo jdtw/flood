@@ -12,18 +12,21 @@ import (
 	"github.com/jdtw/flood/internal/server"
 )
 
-var (
-	port         = flag.Int("port", 8080, "Port to listen on")
-	timezone     = flag.String("timezone", "America/Los_Angeles", "Location in which to display update times")
-	road         = flag.String("road", "124th", "The road to search for in feed updates")
-	templatePath = flag.String("template_path", "flood.html", "The HTML template path")
-	// The KC road alert feed. By convention, updates start with "Open", "Closed", or "Restricted".
-	feed = flag.String("feed", "https://gismaps.kingcounty.gov/roadalert/rss.aspx", "The RSS feed")
-)
-
 func main() {
+	var (
+		port         = flag.Int("port", 8080, "Port to listen on")
+		templatePath = flag.String("template_path", "flood.html", "The HTML template path")
+		faviconPath  = flag.String("favicon_path", "favicon.ico", "The favicon path")
+	)
 	flag.Parse()
-	handler, err := server.NewServer(*feed, *road, *timezone, *templatePath)
+
+	handler, err := server.NewHandler(&server.Options{
+		FeedURL:      "https://gismaps.kingcounty.gov/roadalert/rss.aspx",
+		Road:         "124th",
+		Timezone:     "America/Los_Angeles",
+		TemplatePath: *templatePath,
+		FaviconPath:  *faviconPath,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
