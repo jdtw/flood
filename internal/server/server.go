@@ -54,7 +54,7 @@ func (s *Server) handler() http.HandlerFunc {
 		if remote == "" {
 			remote = r.RemoteAddr
 		}
-		log.Printf("%s %s", remote, r.UserAgent())
+		log.Printf("%s %s %s %s", remote, r.Method, r.URL.Path, r.UserAgent())
 	}
 }
 
