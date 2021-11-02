@@ -120,7 +120,7 @@ func logged(hf http.HandlerFunc) http.HandlerFunc {
 		if remote == "" {
 			remote = r.RemoteAddr
 		}
-		log.Printf("%s %s %s %s", remote, r.Method, r.URL.Path, r.UserAgent())
+		log.Printf("%s %s %s %s", remote, r.Method, r.URL, r.UserAgent())
 		hf(w, r)
 	}
 }
