@@ -107,7 +107,7 @@ func TestOpen(t *testing.T) {
 			Created: time.Now(),
 		}},
 		open:   false,
-		detail: "Updated at",
+		detail: "Updated on",
 	}}
 
 	for _, tc := range tests {
