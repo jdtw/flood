@@ -93,7 +93,7 @@ func (h *handler) flood() http.HandlerFunc {
 				td.Detail = i.Title
 				td.Link = i.Link
 				if i.PublishedParsed != nil {
-					td.Published = i.PublishedParsed.In(h.loc).Format(time.RFC822)
+					td.Published = i.PublishedParsed.In(h.loc).Format(time.RFC1123)
 				}
 				break
 			}
