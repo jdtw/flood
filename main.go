@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jdtw/flood/internal/server"
+	"jdtw.dev/flood/internal/server"
 )
 
 func main() {
