@@ -62,10 +62,11 @@ func startTestServer(t *testing.T, h http.Handler) string {
 func TestOpen(t *testing.T) {
 	link := &feeds.Link{Href: "http://localhost"}
 	tests := []struct {
-		desc   string
-		items  []*feeds.Item
-		detail string
-		open   bool
+		desc     string
+		override Override
+		items    []*feeds.Item
+		detail   string
+		open     bool
 	}{{
 		desc:  "default open",
 		items: []*feeds.Item{},
@@ -86,6 +87,22 @@ func TestOpen(t *testing.T) {
 		}},
 		open:   true,
 		detail: "Open - 124th",
+	}, {
+		desc:     "override to open",
+		override: Open,
+		items: []*feeds.Item{{
+			Title: "Closed - 124th",
+			Link:  link,
+		}},
+		open: true,
+	}, {
+		desc:     "override to closed",
+		override: Closed,
+		items: []*feeds.Item{{
+			Title: "Open - 124th",
+			Link:  link,
+		}},
+		open: false,
 	}, {
 		desc: "latest update",
 		items: []*feeds.Item{{
@@ -114,8 +131,9 @@ func TestOpen(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			feed := startTestServer(t, newFeedGenerator(t, tc.items))
 			h, err := NewHandler(&Options{
-				FeedURL: feed,
-				Road:    "124th",
+				Override: tc.override,
+				FeedURL:  feed,
+				Road:     "124th",
 			})
 			if err != nil {
 				t.Fatalf("NewHandler failed: %v", err)

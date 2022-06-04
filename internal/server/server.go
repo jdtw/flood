@@ -3,6 +3,7 @@
 package server
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
@@ -13,6 +14,14 @@ import (
 	"time"
 
 	"github.com/mmcdole/gofeed"
+)
+
+type Override int
+
+const (
+	None Override = iota
+	Open
+	Closed
 )
 
 // The data directory contains templates and the favicon.
@@ -31,11 +40,12 @@ type templateData struct {
 
 // handler is the HTTP handler for the flood detection service.
 type handler struct {
-	feedURL string
-	road    string
-	loc     *time.Location
-	templ   *template.Template
-	parser  *gofeed.Parser
+	override Override
+	feedURL  string
+	road     string
+	loc      *time.Location
+	templ    *template.Template
+	parser   *gofeed.Parser
 	*http.ServeMux
 }
 
@@ -43,6 +53,10 @@ type handler struct {
 // in those alerts, and the timezone in which to display time to the user.
 // FeedURL and Road are required. Timezone defaults to UTC.
 type Options struct {
+	// If override isn't None, use the manual open/closed status
+	// instead of the feed data (useful for when the feed isn't updated but
+	// the cameras clearly show that the road is open.)
+	Override Override
 	FeedURL  string
 	Road     string
 	Timezone string
@@ -65,7 +79,7 @@ func NewHandler(opts *Options) (http.Handler, error) {
 		return nil, err
 	}
 
-	s := &handler{opts.FeedURL, opts.Road, loc, t, gofeed.NewParser(), http.NewServeMux()}
+	s := &handler{opts.Override, opts.FeedURL, opts.Road, loc, t, gofeed.NewParser(), http.NewServeMux()}
 	s.Handle("/favicon.ico", http.FileServer(http.FS(fs)))
 	s.HandleFunc("/", logged(s.flood()))
 
@@ -75,6 +89,22 @@ func NewHandler(opts *Options) (http.Handler, error) {
 // flood pulls the latest road alerts, gets the latest for the given road,
 // and populates the template based on the results.
 func (h *handler) flood() http.HandlerFunc {
+	// If the manual override is set, execute the template once
+	if h.override != None {
+		buffy := &bytes.Buffer{}
+		td := &templateData{
+			Open: h.override == Open,
+			Road: h.road,
+		}
+		log.Printf("Manual override! open=%t", td.Open)
+		if err := h.templ.Execute(buffy, td); err != nil {
+			log.Fatalf("Failed to execute manual override: %v", err)
+		}
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Write(buffy.Bytes())
+		}
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		feed, err := h.parser.ParseURLWithContext(h.feedURL, r.Context())
 		if err != nil {
