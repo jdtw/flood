@@ -25,11 +25,22 @@ func main() {
 		override = server.Closed
 	}
 
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	if apiKey == "" {
+		log.Printf("GEMINI_API_KEY not set; AI analysis will be disabled")
+	}
+
 	handler, err := server.NewHandler(&server.Options{
-		Override: override,
-		FeedURL:  "https://gismaps.kingcounty.gov/roadalert/rss.aspx",
-		Road:     "124th",
-		Timezone: "America/Los_Angeles",
+		Override:     override,
+		FeedURL:      "https://gismaps.kingcounty.gov/roadalert/rss.aspx",
+		Road:         "124th",
+		Timezone:     "America/Los_Angeles",
+		GeminiAPIKey: apiKey,
+		GeminiModel:  "gemini-2.5-flash-lite",
+		CameraURLs: []string{
+			"https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=CarDuv_SR203_124.jpg",
+			"https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=WSnoNE_124.jpg",
+		},
 	})
 	if err != nil {
 		log.Fatal(err)

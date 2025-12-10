@@ -4,6 +4,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"fmt"
 	"html/template"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/mmcdole/gofeed"
+	"jdtw.dev/flood/internal/genai"
 )
 
 type Override int
@@ -25,6 +27,7 @@ const (
 )
 
 // The data directory contains templates and the favicon.
+//
 //go:embed data
 var data embed.FS
 
@@ -46,6 +49,7 @@ type handler struct {
 	loc      *time.Location
 	templ    *template.Template
 	parser   *gofeed.Parser
+	analyzer *genai.TrafficAnalyzer
 	*http.ServeMux
 }
 
@@ -60,6 +64,11 @@ type Options struct {
 	FeedURL  string
 	Road     string
 	Timezone string
+	// Optional. If empty, Gemini analysis is disabled.
+	GeminiAPIKey string
+	GeminiModel  string
+	// CameraURLs to analyze with Gemini. Ignored if the API key is empty.
+	CameraURLs []string
 }
 
 // NewHandler returns an http.Handler for
@@ -79,7 +88,24 @@ func NewHandler(opts *Options) (http.Handler, error) {
 		return nil, err
 	}
 
-	s := &handler{opts.Override, opts.FeedURL, opts.Road, loc, t, gofeed.NewParser(), http.NewServeMux()}
+	var analyzer *genai.TrafficAnalyzer
+	if opts.GeminiAPIKey != "" {
+		analyzer, err = genai.NewTrafficAnalyzer(context.Background(), opts.GeminiAPIKey, opts.GeminiModel, opts.CameraURLs)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	s := &handler{
+		override: opts.Override,
+		feedURL:  opts.FeedURL,
+		road:     opts.Road,
+		loc:      loc,
+		templ:    t,
+		parser:   gofeed.NewParser(),
+		analyzer: analyzer,
+		ServeMux: http.NewServeMux(),
+	}
 	s.Handle("/favicon.ico", http.FileServer(http.FS(fs)))
 	s.HandleFunc("/", logged(s.flood()))
 
@@ -126,6 +152,21 @@ func (h *handler) flood() http.HandlerFunc {
 					td.Published = i.PublishedParsed.In(h.loc).Format(time.RFC1123)
 				}
 				break
+			}
+		}
+
+		// Let the AI override the RSS feed if it disagrees, since the feed is
+		// notoriously flaky and slow to update.
+		if h.analyzer != nil {
+			open, detail, updated, err := h.analyzer.IsRoadOpen(r.Context())
+			if err == nil && td.Open != open {
+				td = &templateData{
+					Open:      open,
+					Road:      h.road,
+					Detail:    "✨ Analysis: " + detail,
+					Published: updated.In(h.loc).Format(time.RFC1123),
+				}
+				log.Printf("AI Analysis: %s", detail)
 			}
 		}
 

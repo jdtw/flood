@@ -60,6 +60,9 @@ func startTestServer(t *testing.T, h http.Handler) string {
 }
 
 func TestOpen(t *testing.T) {
+	// Disable AI analysis for this test
+	t.Setenv("GEMINI_API_KEY", "")
+
 	link := &feeds.Link{Href: "http://localhost"}
 	tests := []struct {
 		desc     string

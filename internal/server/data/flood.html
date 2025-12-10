@@ -10,8 +10,7 @@
 <body>
 	<h1>{{if .Open}}🚙 {{.Road}} is Open!{{else}}🚧 {{.Road}} is Closed!{{end}}</h1>
 	{{if .Detail}}
-	<p><a href="{{.Link}}">{{.Detail}}</a>{{if .Published}}</br>Updated on {{.Published}}{{end}}</p>
-	{{end}}
+	<p>{{if .Link}}<a href="{{.Link}}">{{end}}{{.Detail}}{{if .Link}}</a>{{end}}{{if .Published}}</br>Updated on {{.Published}}{{end}}</p>{{end}}
 	<h2>📷 124th Cameras</h2>
 	<img
 		src="https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=CarDuv_SR203_124.jpg"
