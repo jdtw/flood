@@ -36,7 +36,7 @@ func main() {
 		Road:         "124th",
 		Timezone:     "America/Los_Angeles",
 		GeminiAPIKey: apiKey,
-		GeminiModel:  "gemini-2.5-flash-lite",
+		GeminiModel:  "gemini-3-flash-preview",
 		CameraURLs: []string{
 			"https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=CarDuv_SR203_124.jpg",
 			"https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=WSnoNE_124.jpg",
