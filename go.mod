@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/gorilla/feeds v1.1.2
 	github.com/mmcdole/gofeed v1.3.0
-	google.golang.org/genai v1.38.0
+	google.golang.org/genai v1.40.0
 )
 
 require (
