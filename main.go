@@ -26,8 +26,13 @@ func main() {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	if apiKey == "" {
-		log.Printf("GEMINI_API_KEY not set; AI analysis will be disabled")
+	model := os.Getenv("GEMINI_MODEL")
+	if apiKey == "" || model == "" {
+		apiKey = ""
+		model = ""
+		log.Print("GEMINI_API_KEY and GEMINI_MODEL not set; AI analysis will be disabled")
+	} else {
+		log.Printf("Active Gemini model: %s", model)
 	}
 
 	handler, err := server.NewHandler(&server.Options{
@@ -36,7 +41,7 @@ func main() {
 		Road:         "124th",
 		Timezone:     "America/Los_Angeles",
 		GeminiAPIKey: apiKey,
-		GeminiModel:  "gemini-3-flash-preview",
+		GeminiModel:  model,
 		CameraURLs: []string{
 			"https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=CarDuv_SR203_124.jpg",
 			"https://info.kingcounty.gov/transportation/kcdot/Roads/TrafficCameras/ImageHandler/Handler.ashx?id=WSnoNE_124.jpg",
