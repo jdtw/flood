@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -166,6 +167,79 @@ func TestOpen(t *testing.T) {
 				t.Errorf("Body missing detail %q: %s", tc.detail, body)
 			}
 		})
+	}
+}
+
+// countingHandler records how many requests reached the wrapped handler.
+type countingHandler struct {
+	h http.Handler
+	n atomic.Int64
+}
+
+func (c *countingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	c.n.Add(1)
+	c.h.ServeHTTP(w, r)
+}
+
+// Only the root path is served. Anything else -- overwhelmingly vulnerability
+// scanners probing for PHP and WordPress -- must 404 from the mux without
+// reaching the handler, because the handler fetches the road alert feed and
+// may spend a Gemini call.
+func TestNonRootPathsAreNotServed(t *testing.T) {
+	feed := &countingHandler{h: newFeedGenerator(t, nil)}
+	feedURL := startTestServer(t, feed)
+	h, err := NewHandler(&Options{FeedURL: feedURL, Road: "124th"})
+	if err != nil {
+		t.Fatalf("NewHandler failed: %v", err)
+	}
+	server := startTestServer(t, h)
+
+	probes := []string{
+		"/wp-login.php",
+		"/admin/config.php",
+		"/666.php",
+		"/wp-content/plugins/core-plugin/include.php",
+		"/backup/",
+		"/.well-known/acme-challenge/index.php",
+		"/some/deep/nested/path",
+	}
+	for _, p := range probes {
+		resp, err := http.Get(server + p)
+		if err != nil {
+			t.Fatalf("http.Get(%s) failed: %v", p, err)
+		}
+		resp.Body.Close()
+		if sc := resp.StatusCode; sc != http.StatusNotFound {
+			t.Errorf("GET %s returned %d, want 404", p, sc)
+		}
+	}
+
+	// The point of the 404 is avoiding work, not just the status code.
+	if n := feed.n.Load(); n != 0 {
+		t.Errorf("scanner probes fetched the road alert feed %d times, want 0", n)
+	}
+}
+
+// The root path must still be served, and it does fetch the feed.
+func TestRootIsStillServed(t *testing.T) {
+	feed := &countingHandler{h: newFeedGenerator(t, nil)}
+	feedURL := startTestServer(t, feed)
+	h, err := NewHandler(&Options{FeedURL: feedURL, Road: "124th"})
+	if err != nil {
+		t.Fatalf("NewHandler failed: %v", err)
+	}
+	server := startTestServer(t, h)
+
+	resp, err := http.Get(server + "/")
+	if err != nil {
+		t.Fatalf("http.Get(/) failed: %v", err)
+	}
+	defer resp.Body.Close()
+	if sc := resp.StatusCode; sc != http.StatusOK {
+		t.Fatalf("GET / returned %d, want 200", sc)
+	}
+	if n := feed.n.Load(); n != 1 {
+		t.Errorf("GET / fetched the road alert feed %d times, want 1", n)
 	}
 }
 

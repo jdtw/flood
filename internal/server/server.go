@@ -107,7 +107,11 @@ func NewHandler(opts *Options) (http.Handler, error) {
 		ServeMux: http.NewServeMux(),
 	}
 	s.Handle("/favicon.ico", http.FileServer(http.FS(fs)))
-	s.HandleFunc("/", logged(s.flood()))
+	// {$} matches the root path and nothing else. A plain "/" pattern is a
+	// catch-all, which meant every scanner probing /wp-login.php and the like
+	// ran the full handler: fetching the road alert feed, and potentially
+	// spending a Gemini call. Those requests now get a 404 from the mux.
+	s.HandleFunc("/{$}", logged(s.flood()))
 
 	return s, nil
 }
